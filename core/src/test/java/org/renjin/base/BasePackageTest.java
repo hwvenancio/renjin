@@ -25,6 +25,7 @@ import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.renjin.EvalTestCase;
+import org.renjin.eval.EvalException;
 import org.renjin.sexp.*;
 
 import java.io.File;
@@ -113,8 +114,8 @@ public class BasePackageTest extends EvalTestCase {
     eval(" class(xi) <- 'data.frame' ");
     
     assertThat( eval(" identical(attr(xi, 'row.names'),  c('1','2','3','4','5') ) "), equalTo(c(true)));
-    assertThat( eval(" identical(attributes(xi)$row.names, c('1','2','3','4','5'))"), equalTo(c(true)));
-    assertThat( eval(" identical(row.names(xi), c('1','2','3','4','5')) "), equalTo(c(true)) );
+    assertThat(eval(" identical(attributes(xi)$row.names, c('1','2','3','4','5'))"), equalTo(c(true)));
+    assertThat(eval(" identical(row.names(xi), c('1','2','3','4','5')) "), equalTo(c(true)));
   }
 
   @Test
@@ -145,7 +146,7 @@ public class BasePackageTest extends EvalTestCase {
     eval("g <- function() sys.parent() ");
     eval("f <- function() g() ");
 
-    assertThat( eval("f()"), equalTo(c_i(1)));
+    assertThat(eval("f()"), equalTo(c_i(1)));
 
     eval("g<-function() eval(formals(sys.function(sys.parent()))[['event']]) ");
     eval("f<-function(event=c('a','b','c')) g() ");
@@ -177,7 +178,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
 
     eval("  d<-as.data.frame(list(ids=1:5)) ");
-    assertThat( eval(" d[,1] "), elementsEqualTo( 1,2,3,4,5));
+    assertThat( eval(" d[,1] "), elementsEqualTo(1, 2, 3, 4, 5));
 
   }
 
@@ -315,7 +316,7 @@ public class BasePackageTest extends EvalTestCase {
     assumingBasePackagesLoad();
 
     eval("y <- as.factor(c(1,0))");
-    assertThat( eval("y == c('1', '0')"), equalTo(c(true,true)));
+    assertThat( eval("y == c('1', '0')"), equalTo(c(true, true)));
   }
   
   @Test
@@ -332,15 +333,15 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval("class(X)"), equalTo(c("factor")));
     
     eval("yp <- ifelse(outer(y,h,'=='),1,0)");
-    assertThat(eval("dim(yp)"), equalTo(c_i(6,2)));
-    assertThat(eval("c(yp)"), equalTo(c(0,1,0,1,0,1,1,0,1,0,1,0)));
+    assertThat(eval("dim(yp)"), equalTo(c_i(6, 2)));
+    assertThat(eval("c(yp)"), equalTo(c(0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0)));
   }
   
   @Test
   public void issue8() throws IOException {
     assumingBasePackagesLoad();
     
-    assertThat( eval("rep(seq(1,10,1),2)"), equalTo(c( 1,2,3,4,5,6,7,8,9,10,1,2,3,4,5,6,7,8,9,10)));
+    assertThat( eval("rep(seq(1,10,1),2)"), equalTo(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)));
   }
 
   @Test
@@ -350,7 +351,7 @@ public class BasePackageTest extends EvalTestCase {
     
     String file = BasePackageTest.class.getResource("SourceTest.R").getFile();
     global.setVariable(Symbol.get("fn"),
-            StringVector.valueOf(new File(file).getAbsolutePath()));
+        StringVector.valueOf(new File(file).getAbsolutePath()));
       eval("source(fn)");
   }
   
@@ -390,11 +391,11 @@ public class BasePackageTest extends EvalTestCase {
     // expected : ~0 + births 
     
     FunctionCall tildeCall = (FunctionCall) topLevelContext.getGlobalEnvironment().getVariable("x");
-    assertThat(tildeCall.getFunction(), equalTo((SEXP)symbol("~")));    
+    assertThat(tildeCall.getFunction(), equalTo((SEXP) symbol("~")));    
     assertThat(tildeCall.getArguments().length(), equalTo(1));
     
     FunctionCall plusCall = (FunctionCall)tildeCall.getArgument(0);
-    assertThat(plusCall.getFunction(), equalTo((SEXP)symbol("+")));    
+    assertThat(plusCall.getFunction(), equalTo((SEXP) symbol("+")));    
   }
 
   @Test
@@ -425,7 +426,7 @@ public class BasePackageTest extends EvalTestCase {
     assertThat(eval("rowsum(m, group=c(1,1,1))"), equalTo(c_i(6,15,24,33)));
     assertThat(eval("row.names(rowsum(m, group=c(1,1,1)))"), equalTo(c("1")));
 
-    assertThat(eval("rowsum(m, group=c(3,3,1), reorder=TRUE)"), equalTo(c_i(3,3,6,9,9,15,12,21)));
+    assertThat(eval("rowsum(m, group=c(3,3,1), reorder=TRUE)"), equalTo(c_i(3, 3, 6, 9, 9, 15, 12, 21)));
 
   }
   
@@ -457,10 +458,15 @@ public class BasePackageTest extends EvalTestCase {
   
   @Test
   public void summaryForDataFrame() throws IOException {
-    assumingBasePackagesLoad();
-    eval(" x <-as.data.frame(list(x=1:10,y=11:20)) ");
-    
-    assertThat(eval("max(x)"), equalTo(c_i(20)));
+    try {
+      assumingBasePackagesLoad();
+      eval(" x <-as.data.frame(list(x=1:10,y=11:20)) ");
+
+      assertThat(eval("max(x)"), equalTo(c_i(20)));
+    } catch (EvalException e) {
+      e.printRStackTrace(System.out);
+      throw e;
+    }
   }
  
   @Test
