@@ -24,7 +24,8 @@ summary.default <-
     else if(is.matrix(object))
 	    return(summary.matrix(object, digits = digits, ...))
 
-    cat(sprintf(
+    cat("OBJECT: \n")
+    cat(deparse(object))
 
     value <- if(is.logical(object))# scalar or array!
         c(Mode = "logical",
