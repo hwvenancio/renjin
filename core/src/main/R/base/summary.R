@@ -94,6 +94,9 @@ summary.matrix <- function(object, ...) {
 summary.data.frame <-
     function(object, maxsum = 7, digits = max(3, getOption("digits") - 3), ...)
 {
+
+    cat("Starting summary.data.frame()\n")
+
     ncw <- function(x) {
         z <- nchar(x, type="w")
         if (any(na <- is.na(z))) {

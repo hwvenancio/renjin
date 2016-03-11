@@ -457,6 +457,7 @@ public class BasePackageTest extends EvalTestCase {
   }
   
   @Test
+  @Ignore("should actually fail - depends on stats package")
   public void summaryForDataFrame() throws IOException {
     try {
       assumingBasePackagesLoad();
