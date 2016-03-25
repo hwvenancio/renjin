@@ -118,6 +118,43 @@ cor <- function(x, y = NULL, use = "everything",
      }
 }
 
+cor.pearson <- function(x, y) {
+  stopifnot(length(x) == length(y))
+  n <- length(x)
+  sum_xy <- sum(x * y)
+  sum_x <- sum(x)
+  sum_x2 <- sum(x*x)
+  sum_y <- sum(y)
+  sum_y2 <- sum(y*y)
+  
+  return((sum_xy - ((sum_x*sum_y)/n)) / 
+    sqrt(sum_x2 - ((sum_x*sum_x) / n) ) /
+    sqrt(sum_y2 - ((sum_y*sum_y) / n) ))
+}
+
+
+cor.apply <- function(x, y = NULL, cor.function) {
+  if(is.null(y)) {
+    # Compute matrix correlation matrix    
+    stopifnot(length(dim(x)) == 2)
+    n <- ncol(x)
+    m <- matrix(1, nrow = n, ncol = n)
+    colnames(m) <- colnames(x)
+    rownames(m) <- colnames(x)
+    for(i in seq.int(1, n)) {
+      for(j in seq.int(i+1, n)) {
+        if(i != j) {
+          m[i, j] <- m[j, i] <- cor.function(x[,i], x[,j])
+        }
+      }
+    }
+    m
+  } else {
+    cor.function(x, y)
+  }
+}
+
+
 cov <- function(x, y = NULL, use = "everything",
                 method = c("pearson", "kendall", "spearman"))
 {
